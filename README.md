@@ -40,12 +40,17 @@ Advanced Attendance Management System (AAMS) is a robust, security-focused web a
 1. **Clone the Repository**:
    ```bash
    git clone https://github.com/prajapatinitesh/aams-project.git
+   cd aams-project
    ```
 
 2. **Setup Virtual Environment**:
    ```bash
    python -m venv venv
-   source venv/bin/activate  # Windows: venv\\Scripts\\activate
+   
+   # Linux/Mac:
+   source venv/bin/activate  
+   # Windows: 
+   venv/Scripts/activate
    ```
 
 3. **Install Dependencies**:
