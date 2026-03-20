@@ -27,7 +27,7 @@ def seed_data():
         print(f"- Admin {admin_email} created.")
 
     # 3. Departments
-    dept_names = ["Computer Science", "Information Technology", "Electrical Eng", "Electronics Eng"]
+    dept_names = ["Computer Engineering", "Mechanical", "AI&DS", "Civil"]
     depts = []
     for name in dept_names:
         dept, created = Department.objects.get_or_create(name=name)
@@ -72,7 +72,7 @@ def seed_data():
             s_user = User.objects.create_user(
                 email=s_email,
                 password="student",
-                full_name=f"Student Name {i}",
+                full_name=f"Student {i}",
                 role="student"
             )
             # Distribute among depts and semesters
