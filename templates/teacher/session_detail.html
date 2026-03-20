@@ -1,0 +1,284 @@
+{% extends "base.html" %}
+
+{% block title %}Session Detail - {{ session.subject.name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .qr-container {
+        background: white;
+        padding: 2rem;
+        border-radius: 24px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        border: 1px solid rgba(0,0,0,0.03);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 400px;
+    }
+    #qr-img {
+        width: 250px;
+        height: 250px;
+        object-fit: contain;
+        image-rendering: pixelated;
+    }
+    .student-list-card {
+        border-radius: 20px;
+        overflow: hidden;
+    }
+    .mode-select-card {
+        transition: all 0.3s ease;
+        cursor: pointer;
+        border: 2px solid transparent;
+    }
+    .mode-select-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
+    }
+    .mode-select-card.active {
+        border-color: var(--bs-primary);
+        background-color: var(--bs-primary-bg-subtle);
+    }
+    .spin-icon {
+        display: inline-block;
+        animation: spin 2s linear infinite;
+    }
+    @keyframes spin { 100% { transform: rotate(360deg); } }
+    
+    .attendance-switch .form-check-input {
+        width: 3.5em;
+        height: 1.75em;
+        cursor: pointer;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <!-- Header -->
+    <div class="col-12">
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+            <div class="card-body p-4">
+                <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+                    <div>
+                        <nav aria-label="breadcrumb">
+                            <ol class="breadcrumb mb-1">
+                                <li class="breadcrumb-item"><a href="{% url 'teacher_dashboard' %}" class="text-decoration-none">Dashboard</a></li>
+                                <li class="breadcrumb-item active">Current Session</li>
+                            </ol>
+                        </nav>
+                        <h2 class="fw-bold text-dark mb-0">{{ session.subject.name }}</h2>
+                        <p class="text-muted mb-0">
+                            <i class="bi bi-calendar-event me-1"></i> {{ session.date|date:"d M Y" }} | 
+                            <i class="bi bi-people me-1"></i> {{ session.subject.department.name }} | Sem {{ session.subject.semester }}
+                        </p>
+                    </div>
+                    <div class="d-flex gap-3">
+                        <div class="text-center px-4 py-2 bg-primary-subtle text-primary rounded-4 shadow-sm border border-primary-subtle">
+                            <h3 class="mb-0 fw-bold" id="present-count">{{ session.present_count }}</h3>
+                            <small class="fw-bold text-uppercase x-small">Present</small>
+                        </div>
+                        <div class="text-center px-4 py-2 bg-light text-dark rounded-4 shadow-sm border">
+                            <h3 class="mb-0 fw-bold">{{ session.total_count }}</h3>
+                            <small class="fw-bold text-uppercase x-small">Total</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% if session.status == 'active' and session.mode != 'none' %}
+            <div class="card-footer bg-white border-top-0 px-4 pb-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="d-flex gap-2">
+                        <form method="post" action="{% url 'session_mode_qr' session.pk %}">{% csrf_token %}<button type="submit" class="btn {% if session.mode == 'qr' %}btn-primary shadow-sm{% else %}btn-outline-primary{% endif %} btn-sm rounded-pill px-3"><i class="bi bi-qr-code-scan me-1"></i> QR Mode</button></form>
+                        <form method="post" action="{% url 'session_mode_manual' session.pk %}">{% csrf_token %}<button type="submit" class="btn {% if session.mode == 'manual' %}btn-warning shadow-sm{% else %}btn-outline-warning{% endif %} btn-sm rounded-pill px-3"><i class="bi bi-pencil-square me-1"></i> Manual Mode</button></form>
+                    </div>
+                    <form method="post" action="{% url 'session_end' session.pk %}" onsubmit="return confirm('End this session? Students will no longer be able to scan.')">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger btn-sm rounded-pill px-4 shadow-sm fw-bold">
+                            <i class="bi bi-stop-circle me-1"></i> End Session
+                        </button>
+                    </form>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if session.mode == 'none' and session.status == 'active' %}
+    <!-- Initial Mode Selection -->
+    <div class="col-12">
+        <div class="card border-0 shadow-lg rounded-4 p-5 text-center bg-white">
+            <h3 class="fw-bold text-dark mb-2">Step 2: Choose Your Method</h3>
+            <p class="text-muted mb-5">Select how you want to record attendance for this lecure.</p>
+            
+            <div class="row justify-content-center g-4">
+                <div class="col-md-5">
+                    <form method="post" action="{% url 'session_mode_qr' session.pk %}">
+                        {% csrf_token %}
+                        <button type="submit" class="card mode-select-card border-0 shadow-sm p-4 w-100 h-100 bg-primary-subtle link-primary text-decoration-none">
+                            <div class="card-body">
+                                <i class="bi bi-qr-code-scan display-1 mb-4 opacity-75"></i>
+                                <h4 class="fw-bold mb-3 text-primary">Live QR Code</h4>
+                                <p class="text-muted small">Generate a rotating QR code that students scan via their mobile devices. Best for large classes.</p>
+                                <div class="mt-4"><span class="btn btn-primary rounded-pill px-4">Start QR Session</span></div>
+                            </div>
+                        </button>
+                    </form>
+                </div>
+                <div class="col-md-5">
+                    <form method="post" action="{% url 'session_mode_manual' session.pk %}">
+                        {% csrf_token %}
+                        <button type="submit" class="card mode-select-card border-0 shadow-sm p-4 w-100 h-100 bg-warning-subtle link-warning text-decoration-none">
+                            <div class="card-body">
+                                <i class="bi bi-pencil-square display-1 mb-4 opacity-75"></i>
+                                <h4 class="fw-bold mb-3 text-warning-emphasis">Manual Bulk Entry</h4>
+                                <p class="text-muted small">Quickly toggle attendance for each student in a searchable list. Best for small groups or manual corrections.</p>
+                                <div class="mt-4"><span class="btn btn-warning rounded-pill px-4">Start Manual Marking</span></div>
+                            </div>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <!-- Active Session Grid -->
+    <div class="{% if session.mode == 'qr' %}col-lg-5{% else %}col-12 d-none{% endif %}">
+        <div class="qr-container">
+            {% if session.status == 'active' %}
+                <h5 class="fw-bold text-primary mb-4 text-uppercase tracking-wider">Scanning In Progress</h5>
+                <div id="qr-spinner" class="spinner-border text-primary my-5" style="width: 3rem; height: 3rem;" role="status"></div>
+                <img id="qr-img" src="" alt="Live QR Code" style="display:none;" class="shadow-lg p-2 bg-white rounded-3">
+                <div class="mt-4 text-center">
+                    <div class="badge bg-light text-primary border px-3 py-2 rounded-pill shadow-sm mb-2">
+                        <i class="bi bi-arrow-repeat me-2 spin-icon"></i>Next update in <span id="timer" class="fw-bold">--</span>s
+                    </div>
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="bi bi-archive display-1 text-muted opacity-25 mb-4"></i>
+                    <h4 class="fw-bold text-dark">Session Ended</h4>
+                    <p class="text-muted small px-5">This QR code is no longer valid. All captured data has been archived.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="{% if session.mode == 'qr' %}col-lg-7{% else %}col-12{% endif %}">
+        <div class="card border-0 shadow-sm student-list-card h-100 bg-white">
+            <div class="card-header bg-white border-0 py-4 px-4 d-flex justify-content-between align-items-center">
+                <h5 class="fw-bold mb-0">Student Roster</h5>
+                <div class="input-group input-group-sm rounded-pill overflow-hidden" style="width: 250px;">
+                    <span class="input-group-text bg-light border-0"><i class="bi bi-search"></i></span>
+                    <input type="text" id="studentSearch" class="form-control bg-light border-0" placeholder="Filter by name or roll...">
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0" id="studentTable">
+                        <thead class="bg-light text-muted small text-uppercase">
+                            <tr>
+                                <th class="ps-4">Roll</th>
+                                <th>Student Name</th>
+                                <th>Status</th>
+                                <th class="text-end pe-4">Manual Toggle</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for record in records %}
+                            <tr>
+                                <td class="ps-4 fw-bold">{{ record.student.roll_number }}</td>
+                                <td>
+                                    <div class="fw-bold text-dark">{{ record.student.user.full_name }}</div>
+                                    <small class="text-muted">{{ record.student.user.email }}</small>
+                                </td>
+                                <td>
+                                    <span id="badge-{{ record.student.pk }}" class="badge {% if record.status == 'present' %}bg-success-subtle text-success{% else %}bg-danger-subtle text-danger{% endif %} rounded-pill px-3 py-2">
+                                        {{ record.status|upper }}
+                                    </span>
+                                </td>
+                                <td class="text-end pe-4">
+                                    <div class="form-check form-switch d-inline-block attendance-switch">
+                                        <input class="form-check-input manual-mark-check" type="checkbox" 
+                                               {% if record.status == 'present' %}checked{% endif %}
+                                               data-url="{% url 'session_manual_mark' session.pk record.student.pk %}"
+                                               {% if session.status == 'ended' %}disabled{% endif %}>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="4" class="text-center py-5">No students found.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+    {% if session.status == 'active' and session.mode == 'qr' %}
+    function updateQR() {
+        fetch("{% url 'session_qr_json' session.pk %}")
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('qr-img').src = data.qr_image;
+                document.getElementById('qr-img').style.display = 'block';
+                document.getElementById('qr-spinner').style.display = 'none';
+                
+                let timeLeft = data.interval;
+                const timerEl = document.getElementById('timer');
+                
+                if (window.qrInterval) clearInterval(window.qrInterval);
+                window.qrInterval = setInterval(() => {
+                    timerEl.innerText = --timeLeft;
+                    if (timeLeft <= 0) {
+                        clearInterval(window.qrInterval);
+                        updateQR();
+                    }
+                }, 1000);
+            })
+            .catch(err => console.error("QR Fetch error:", err));
+    }
+    updateQR();
+    {% endif %}
+
+    // Manual Marking AJAX
+    document.querySelectorAll('.manual-mark-check').forEach(chk => {
+        chk.addEventListener('change', function() {
+            const url = this.dataset.url;
+            const studentId = url.split('/').filter(p => p).pop();
+            const badge = document.getElementById(`badge-${studentId}`);
+            const presentCounter = document.getElementById('present-count');
+
+            fetch(url, {
+                method: "POST",
+                headers: { "X-CSRFToken": "{{ csrf_token }}" }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'present') {
+                    badge.className = 'badge bg-success-subtle text-success rounded-pill px-3 py-2';
+                    badge.innerText = 'PRESENT';
+                    presentCounter.innerText = parseInt(presentCounter.innerText) + 1;
+                } else {
+                    badge.className = 'badge bg-danger-subtle text-danger rounded-pill px-3 py-2';
+                    badge.innerText = 'ABSENT';
+                    presentCounter.innerText = parseInt(presentCounter.innerText) - 1;
+                }
+            });
+        });
+    });
+
+    // Search Filtering
+    document.getElementById('studentSearch')?.addEventListener('keyup', function() {
+        const val = this.value.toLowerCase();
+        document.querySelectorAll('#studentTable tbody tr').forEach(tr => {
+            const text = tr.innerText.toLowerCase();
+            tr.style.display = text.includes(val) ? '' : 'none';
+        });
+    });
+</script>
+{% endblock %}

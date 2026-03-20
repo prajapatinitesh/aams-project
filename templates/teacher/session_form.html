@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block title %}Start Session - AAMS{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-6">
+        <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="card-header bg-primary py-4 text-center">
+                <i class="bi bi-calendar-plus display-4 text-white opacity-75 d-block mb-3"></i>
+                <h4 class="fw-bold mb-0 text-white">Initialize Attendance Session</h4>
+            </div>
+            <div class="card-body p-4 p-lg-5">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="mb-4">
+                        <label class="form-label fw-bold text-dark text-uppercase small">1. Select Subject</label>
+                        <div class="input-group shadow-sm">
+                            <span class="input-group-text bg-white border-end-0"><i class="bi bi-journals"></i></span>
+                            <select name="subject" class="form-select border-start-0 ps-0" required>
+                                <option value="">Choose course...</option>
+                                {% for sub in subjects %}
+                                    <option value="{{ sub.id }}" {% if request.GET.subject == sub.id|slugify %}selected{% endif %}>
+                                        {{ sub.name }} (Sem {{ sub.semester }})
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-bold text-dark text-uppercase small">2. Session Date</label>
+                        <div class="input-group shadow-sm">
+                            <span class="input-group-text bg-white border-end-0"><i class="bi bi-calendar-event"></i></span>
+                            <input type="date" name="date" class="form-control border-start-0 ps-0" value="{{ today|date:'Y-m-d' }}" required>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-info border-0 bg-info-subtle py-3 px-4 rounded-3 shadow-sm my-4">
+                        <div class="d-flex align-items-center text-primary">
+                            <i class="bi bi-info-circle-fill fs-4 me-3"></i>
+                            <div class="small">
+                                <strong>Note:</strong> You will choose the attendance method (QR or Manual) on the next page.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-success btn-lg fw-bold rounded-pill py-3 shadow">
+                            <i class="bi bi-arrow-right-circle-fill me-2"></i> Create Session
+                        </button>
+                        <a href="{% url 'teacher_dashboard' %}" class="btn btn-light btn-sm text-muted mt-2">
+                            <i class="bi bi-x-circle me-1"></i> Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}Assign Teachers - {{ subject.name }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-dark text-white">
+                <h4>Assign Teachers to {{ subject.name }}</h4>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <p class="text-muted mb-4">Select teachers who are authorized to conduct sessions for this subject.</p>
+                    
+                    <div class="row">
+                        {% for teacher in teachers %}
+                        <div class="col-md-6 mb-2">
+                            <div class="form-check p-2 border rounded">
+                                <input class="form-check-input ms-0 me-2" type="checkbox" name="teachers" value="{{ teacher.id }}" id="teacher_{{ teacher.id }}" 
+                                    {% if teacher.id in assigned_teacher_ids %}checked{% endif %}>
+                                <label class="form-check-label" for="teacher_{{ teacher.id }}">
+                                    <strong>{{ teacher.user.full_name }}</strong><br>
+                                    <small>{{ teacher.department.name|default:"No Department" }}</small>
+                                </label>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="col-12 text-center py-4">
+                            No teachers registered in the system.
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="d-flex justify-content-between mt-4">
+                        <a href="{% url 'subject_list' %}" class="btn btn-secondary">Back to Subjects</a>
+                        <button type="submit" class="btn btn-primary" {% if not teachers %}disabled{% endif %}>Update Assignments</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

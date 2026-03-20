@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block title %}Delete Department - AAMS{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card border-danger">
+            <div class="card-header bg-danger text-white">
+                <h4>Confirm Delete</h4>
+            </div>
+            <div class="card-body text-center">
+                <p class="lead">Are you sure you want to delete the department: <strong>{{ object.name }}</strong>?</p>
+                <div class="alert alert-warning small">
+                    Warning: This action cannot be undone. You can only delete departments that have no subjects linked to them.
+                </div>
+            </div>
+            <div class="card-footer d-flex justify-content-between">
+                <a href="{% url 'dept_list' %}" class="btn btn-secondary">Cancel</a>
+                <form method="post">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">Yes, Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}My Attendance History - AAMS{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <h2>My Attendance History</h2>
+    <hr>
+</div>
+
+<div class="card">
+    <div class="card-body p-0">
+        <table class="table table-hover mb-0">
+            <thead class="table-dark">
+                <tr>
+                    <th>Date</th>
+                    <th>Subject</th>
+                    <th>Teacher</th>
+                    <th>Status</th>
+                    <th>Marked Via</th>
+                    <th>Time</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in records %}
+                <tr class="{% if r.status == 'present' %}table-success{% endif %}">
+                    <td>{{ r.session.date }}</td>
+                    <td>{{ r.session.subject.name }}</td>
+                    <td>{{ r.session.teacher.user.full_name }}</td>
+                    <td><strong>{{ r.status|upper }}</strong></td>
+                    <td>{{ r.get_marked_by_display }}</td>
+                    <td>{{ r.marked_at|time|default:"-" }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="text-center py-4">No attendance records found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

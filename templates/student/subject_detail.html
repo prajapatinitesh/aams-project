@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+
+{% block title %}Attendance Detail - {{ subject.name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .detail-stat-card {
+        border-radius: 20px;
+        border: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .session-item {
+        border-radius: 16px;
+        transition: all 0.2s ease;
+        border-left: 5px solid transparent;
+    }
+
+    .session-item:hover {
+        background-color: #f8f9fa;
+        transform: translateX(5px);
+    }
+
+    .status-present {
+        border-left-color: #198754;
+    }
+
+    .status-absent {
+        border-left-color: #dc3545;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row g-4 mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-1">
+                        <li class="breadcrumb-item"><a href="{% url 'student_dashboard' %}"
+                                class="text-decoration-none">Dashboard</a></li>
+                        <li class="breadcrumb-item active">Subject Stats</li>
+                    </ol>
+                </nav>
+                <h2 class="fw-bold text-dark mb-0">{{ subject.name }}</h2>
+                <p class="text-muted"><i class="bi bi-person-badge me-1"></i> Course Faculty: {{ subject.teachers.all|join:", " }}</p>
+
+            </div>
+            <a href="{% url 'student_dashboard' %}" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+                <i class="bi bi-arrow-left me-1"></i> Back to Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Summary Stats -->
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="card detail-stat-card shadow-sm h-100 p-3 bg-white">
+            <div class="card-body text-center">
+                <h6 class="text-muted text-uppercase small fw-bold mb-3">Overall Score</h6>
+                <h2
+                    class="display-5 fw-bold {% if stats.percent < 75 %}text-danger{% else %}text-success{% endif %} mb-0">
+                    {{ stats.percent }}%</h2>
+                <div class="progress mt-3" style="height: 6px;">
+                    <div class="progress-bar {% if stats.percent < 75 %}bg-danger{% else %}bg-success{% endif %}"
+                        style="width: {{ stats.percent }}%"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card detail-stat-card shadow-sm h-100 p-3 bg-white">
+            <div class="card-body text-center">
+                <h6 class="text-muted text-uppercase small fw-bold mb-3">Total Sessions</h6>
+                <h2 class="fw-bold mb-0 text-dark">{{ stats.total }}</h2>
+                <small class="text-muted">Conducted till date</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div
+            class="card detail-stat-card shadow-sm h-100 p-3 bg-success bg-opacity-10 border-success border-opacity-10">
+            <div class="card-body text-center">
+                <h6 class="text-success text-uppercase small fw-bold mb-3">Present</h6>
+                <h2 class="fw-bold mb-0 text-success">{{ stats.present }}</h2>
+                <small class="text-success opacity-75">Attended classes</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card detail-stat-card shadow-sm h-100 p-3 bg-danger bg-opacity-10 border-danger border-opacity-10">
+            <div class="card-body text-center">
+                <h6 class="text-danger text-uppercase small fw-bold mb-3">Absent</h6>
+                <h2 class="fw-bold mb-0 text-danger">{{ stats.absent }}</h2>
+                <small class="text-danger opacity-75">Missed classes</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chronological History -->
+<div class="row g-4">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm rounded-4">
+            <div class="card-header bg-white py-3 px-4 border-0">
+                <h5 class="mb-0 fw-bold text-dark"><i class="bi bi-clock-history me-2 text-primary"></i>Detailed
+                    Attendance Log</h5>
+            </div>
+            <div class="card-body px-4 pt-0">
+                <div class="list-group list-group-flush mt-2">
+                    {% for record in records %}
+                    <div
+                        class="list-group-item px-3 border-0 mb-3 bg-light session-item {% if record.status == 'present' %}status-present{% else %}status-absent{% endif %}">
+                        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+                            <div class="d-flex align-items-center">
+                                <div class="me-4 text-center" style="min-width: 60px;">
+                                    <div class="fw-bold fs-4 mb-0">{{ record.session.date|date:"d" }}</div>
+                                    <small class="text-muted text-uppercase">{{ record.session.date|date:"M Y" }}</small>
+                                </div>
+                                <div>
+                                    <h6 class="fw-bold mb-1">Attendance Record</h6>
+                                    <div class="text-muted small">
+                                        <i class="bi bi-person-check me-1"></i> Marked by: {{ record.marked_by|title }} |
+                                        <i class="bi bi-clock me-1"></i> Time: {{ record.session.created_at|time:"H:i" }}
+                                    </div>
+                                </div>
+
+                            </div>
+                            <div class="text-end">
+                                <span
+                                    class="badge {% if record.status == 'present' %}bg-success{% else %}bg-danger{% endif %} rounded-pill px-4 py-2 shadow-sm fw-bold">
+                                    {{ record.status|upper }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="text-center py-5">
+                        <i class="bi bi-journal-x display-1 text-muted opacity-25 mb-4"></i>
+                        <h4 class="text-muted">No attendance sessions found for this subject.</h4>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

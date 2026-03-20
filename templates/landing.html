@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AAMS | Advanced Attendance Management System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+            --glass-bg: rgba(255, 255, 255, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.3);
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: #f8fafc;
+            color: #1e293b;
+        }
+
+        .hero-section {
+            background: var(--primary-gradient);
+            padding: 100px 0;
+            color: white;
+            border-radius: 0 0 50px 50px;
+            margin-bottom: -50px;
+        }
+
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s ease;
+        }
+
+        .glass-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .highlight-mentor {
+            background: rgba(99, 102, 241, 0.1);
+            border-left: 5px solid #6366f1;
+            padding: 20px;
+            border-radius: 12px;
+        }
+
+        .btn-start {
+            background: white;
+            color: #6366f1;
+            font-weight: 700;
+            padding: 15px 40px;
+            border-radius: 50px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .btn-start:hover {
+            transform: scale(1.05);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+            color: #4f46e5;
+        }
+
+        .team-table th {
+            background: #f1f5f9;
+        }
+
+        .feature-icon {
+            width: 60px;
+            height: 60px;
+            background: var(--primary-gradient);
+            color: white;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Hero Section -->
+    <section class="hero-section text-center">
+        <div class="container">
+            <h1 class="display-3 fw-bold mb-3">Project AAMS</h1>
+            <p class="lead mb-5 opacity-75">Advanced Attendance Management System using WebGL Device Fingerprinting</p>
+            <a href="{% url 'login' %}" class="btn btn-start btn-lg border-0">
+                Start Project <i class="bi bi-arrow-right ms-2"></i>
+            </a>
+        </div>
+    </section>
+
+    <div class="container mt-5 pt-5 pb-5">
+        <!-- Project Meta -->
+        <div class="row g-4 mb-5">
+            <div class="col-lg-8">
+                <div class="glass-card p-5">
+                    <h3 class="fw-bold mb-4">Project Overview</h3>
+                    <div class="row g-4 text-center">
+                        <div class="col-md-3">
+                            <div class="p-3 bg-light rounded-4">
+                                <small class="text-muted d-block">Group</small>
+                                <span class="fw-bold">APEX (No. 12)</span>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="p-3 bg-light rounded-4">
+                                <small class="text-muted d-block">Subject</small>
+                                <span class="fw-bold">Mini Project</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="p-3 bg-light rounded-4">
+                                <small class="text-muted d-block">College</small>
+                                <span class="fw-bold">Rizvi College of Engineering, Bandra West</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr class="my-5 opacity-10">
+
+                    <h4 class="fw-bold mb-3">Purpose</h4>
+                    <p class="text-secondary">Attendance management in college lectures has long relied on methods that
+                        are easily manipulated. Paper sheets and static QR codes share a common weakness — they verify
+                        identity loosely. This practice, known as <strong>proxy attendance</strong>, undermines academic
+                        integrity.</p>
+                    <p class="text-secondary">The purpose of <strong>Advanced Attendance Management System
+                            (AAMS)</strong> is to address this problem directly by building a platform that makes proxy
+                        attendance technically difficult to execute — not just against policy, but against the system
+                        itself.</p>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="glass-card p-4 h-100">
+                    <h4 class="fw-bold mb-4 text-primary"><i class="bi bi-people me-2"></i>Project Team</h4>
+                    <table class="table table-borderless align-middle mb-4">
+                        <thead>
+                            <tr class="small text-muted text-uppercase">
+                                <th>No.</th>
+                                <th>Team Member Name</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>1</td>
+                                <td class="fw-semibold">Khan Istiyaq</td>
+                            </tr>
+                            <tr>
+                                <td>2</td>
+                                <td class="fw-semibold">Hanmante Ashish</td>
+                            </tr>
+                            <tr>
+                                <td>3</td>
+                                <td class="fw-semibold">Mishra Priyanshu</td>
+                            </tr>
+                            <tr>
+                                <td>4</td>
+                                <td class="fw-semibold">Prajapati Nitesh</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div class="highlight-mentor mb-3">
+                        <small class="text-muted d-block text-uppercase fw-bold x-small">HOD & Project Guide</small>
+                        <h5 class="fw-bold mb-0 text-primary">Prof. Mohammed Juned</h5>
+                    </div>
+                    <div class="highlight-mentor"
+                        style="border-left-color: #ec4899; background: rgba(236, 72, 153, 0.05);">
+                        <small class="text-muted d-block text-uppercase fw-bold x-small">Principal</small>
+                        <h5 class="fw-bold mb-0" style="color: #ec4899;">Prof. Varsha Shah</h5>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Objectives -->
+        <div class="row g-4 mb-5">
+            <div class="col-12">
+                <h3 class="fw-bold text-center mb-5">Core Objectives</h3>
+            </div>
+            <div class="col-md-4">
+                <div class="glass-card p-4 h-100">
+                    <div class="feature-icon"><i class="bi bi-fingerprint"></i></div>
+                    <h5 class="fw-bold">Eliminate Proxy Attendance</h5>
+                    <p class="small text-secondary">The system silently runs a WebGL routine on the student's browser.
+                        The unique GPU hash is recorded; duplicate hashes from different accounts are rejected and
+                        flagged.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="glass-card p-4 h-100">
+                    <div class="feature-icon"><i class="bi bi-qr-code-scan"></i></div>
+                    <h5 class="fw-bold">Rotating QR Codes</h5>
+                    <p class="small text-secondary">Signed tokens auto-rotate every N seconds. This adds a time-bound
+                        layer on top of the device-bound fingerprint layer, rendering screenshots useless.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="glass-card p-4 h-100">
+                    <div class="feature-icon"><i class="bi bi-toggle-on"></i></div>
+                    <h5 class="fw-bold">Flexible Session Control</h5>
+                    <p class="small text-secondary">Teachers can switch between Live QR and Manual Marking modes
+                        effortlessly without resetting previous data for the same class.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Acknowledgment -->
+        <div class="row mb-5">
+            <div class="col-12">
+                <div class="glass-card p-5 text-center bg-white">
+                    <h3 class="fw-bold mb-4">Acknowledgment</h3>
+                    <div class="text-secondary max-w-800 mx-auto">
+                        <p>We, the students of Group APEX (Group No. 12), would like to express our sincere gratitude to
+                            everyone who supported and guided us throughout the development of this project.</p>
+                        <p>First and foremost, we extend our deepest thanks to our <strong>Project Guide and Head of
+                                Department, Prof. Mohammed Juned</strong>, for his invaluable guidance, constant
+                            encouragement, and technical insights. His direction helped us shape this project from an
+                            idea into a complete working system.</p>
+                        <p>We are grateful to our <strong>Principal, Prof. Varsha Shah</strong>, for providing us with
+                            the resources, infrastructure, and academic environment necessary to carry out this work.
+                        </p>
+                        <p>We also thank the faculty and staff of <strong>Rizvi College of Engineering, Bandra
+                                West</strong>, for their continued support throughout the academic year 2025–26.</p>
+                        <p>Finally, we thank our families and peers for their patience and encouragement during the
+                            course of this project.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="bg-white py-4 border-top">
+        <div class="container text-center">
+            <p class="text-muted mb-0 small">&copy; 2026 APEX Group - Advanced Attendance Management System (AAMS)</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>

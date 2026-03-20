@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block title %}Confirm Attendance - AAMS{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow">
+            <div class="card-header bg-success text-white">
+                <h4 class="mb-0">Verify Attendance</h4>
+            </div>
+            <div class="card-body text-center py-5" id="verification-ui">
+                <div id="loading">
+                    <div class="spinner-border text-primary mb-3" role="status"></div>
+                    <h5>Verifying Device Hardware...</h5>
+                    <p class="text-muted small">Please stay on this page. Do not refresh.</p>
+                </div>
+
+                <div id="ready" style="display:none;">
+                    <i class="bi bi-shield-check display-1 text-success mb-3"></i>
+                    <h4>{{ session.subject.name }}</h4>
+                    <p class="text-muted">Academic Verification Required</p>
+                    
+                    <form method="post" id="attendance-form">
+                        {% csrf_token %}
+                        <input type="hidden" name="webgl_hash" id="webgl_hash">
+                        <button type="submit" class="btn btn-success btn-lg px-5">Mark Me Present</button>
+                    </form>
+                </div>
+
+                <div id="error-ui" style="display:none;" class="text-danger">
+                    <i class="bi bi-exclamation-triangle-fill display-1 mb-3"></i>
+                    <h5>Hardware Verification Failed</h5>
+                    <p>Your browser does not support WebGL or hardware fingerprinting. Please contact your instructor.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    /**
+     * Generates a unique hardware fingerprint using WebGL.
+     * This hash is used to prevent proxy attendance (multiple students on one device).
+     */
+    function getWebGLFingerprint() {
+        return new Promise((resolve) => {
+            try {
+                const canvas = document.createElement('canvas');
+                const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+                if (!gl) return resolve(null);
+
+                const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
+                const vendor = gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL);
+                const renderer = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
+                
+                // Combine vendor, renderer and screen resolution for a reasonably unique hash
+                const raw = `${vendor}~${renderer}~${window.screen.width}x${window.screen.height}`;
+                
+                // Simple hash function (cyrb53 or similar)
+                let h1 = 0xdeadbeef, h2 = 0x41c6ce57;
+                for (let i = 0, ch; i < raw.length; i++) {
+                    ch = raw.charCodeAt(i);
+                    h1 = Math.imul(h1 ^ ch, 2654435761);
+                    h2 = Math.imul(h2 ^ ch, 1597334677);
+                }
+                h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+                h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+                const hash = 4294967296 * (2097151 & h2) + (h1 >>> 0);
+                resolve(hash.toString(16));
+            } catch (e) {
+                resolve(null);
+            }
+        });
+    }
+
+    window.addEventListener('DOMContentLoaded', async () => {
+        const hash = await getWebGLFingerprint();
+        const loading = document.getElementById('loading');
+        const ready = document.getElementById('ready');
+        const errorUi = document.getElementById('error-ui');
+        const hashInput = document.getElementById('webgl_hash');
+
+        if (hash) {
+            hashInput.value = hash;
+            loading.style.display = 'none';
+            ready.style.display = 'block';
+        } else {
+            loading.style.display = 'none';
+            errorUi.style.display = 'block';
+        }
+    });
+</script>
+{% endblock %}

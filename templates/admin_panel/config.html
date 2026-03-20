@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block title %}System Configuration - AAMS{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card border-danger">
+            <div class="card-header bg-danger text-white">
+                <h4>System Configuration</h4>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-4">
+                        <label for="id_interval" class="form-label">QR Code Rotation Interval (Seconds)</label>
+                        <input type="number" name="interval" class="form-control" id="id_interval" value="{{ interval }}" min="10" max="300" required>
+                        <div class="form-text">
+                            Determines how often a new QR code is generated. Students must scan and confirm within this window. Default is 30.
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle"></i>
+                        Changing these settings affects live sessions and attendance marking immediately.
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'admin_dashboard' %}" class="btn btn-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-danger">Update Settings</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block title %}{% if object %}Edit{% else %}Add{% endif %} Subject - AAMS{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h4>{% if object %}Edit{% else %}Add New{% endif %} Subject</h4>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="id_name" class="form-label">Subject Name</label>
+                        {{ form.name }}
+                        {% if form.name.errors %}<div class="text-danger small">{{ form.name.errors }}</div>{% endif %}
+                    </div>
+                    <div class="mb-3">
+                        <label for="id_department" class="form-label">Department</label>
+                        {{ form.department }}
+                        {% if form.department.errors %}<div class="text-danger small">{{ form.department.errors }}</div>{% endif %}
+                    </div>
+                    <div class="mb-3">
+                        <label for="id_semester" class="form-label">Semester (1-8)</label>
+                        {{ form.semester }}
+                        {% if form.semester.errors %}<div class="text-danger small">{{ form.semester.errors }}</div>{% endif %}
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'subject_list' %}" class="btn btn-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-success">Save Subject</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Add bootstrap classes to django form fields
+    document.querySelectorAll('input, select').forEach(el => el.classList.add('form-control'));
+</script>
+{% endblock %}

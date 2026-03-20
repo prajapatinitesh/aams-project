@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+
+{% block title %}Attendance Reports - AAMS{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold mb-0 text-dark"><i class="bi bi-bar-chart-fill me-2 text-primary"></i>Attendance Reports</h2>
+    <div>
+        <span class="badge bg-light text-dark border px-3 py-2 shadow-sm">
+            Total Sessions: {{ sessions.count }}
+        </span>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body p-4">
+        <h6 class="fw-bold mb-3"><i class="bi bi-filter me-1"></i> Advanced Filters</h6>
+        <form method="get" class="row g-3">
+            <div class="col-md-2">
+                <label class="form-label small fw-bold text-muted text-uppercase">Department</label>
+                <select name="department" class="form-select shadow-sm" onchange="this.form.submit()">
+                    <option value="">All Departments</option>
+                    {% for dept in departments %}
+                        <option value="{{ dept.id }}" {% if selected_dept == dept.id %}selected{% endif %}>{{ dept.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small fw-bold text-muted text-uppercase">Subject</label>
+                <select name="subject" class="form-select shadow-sm">
+                    <option value="">All Subjects</option>
+                    {% for sub in subjects %}
+                        <option value="{{ sub.id }}" {% if selected_subject == sub.id %}selected{% endif %}>{{ sub.name }} (Sem {{ sub.semester }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small fw-bold text-muted text-uppercase">Teacher</label>
+                <select name="teacher" class="form-select shadow-sm">
+                    <option value="">All Teachers</option>
+                    {% for t in teachers %}
+                        <option value="{{ t.id }}" {% if selected_teacher == t.id %}selected{% endif %}>{{ t.user.full_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small fw-bold text-muted text-uppercase">From</label>
+                <input type="date" name="date_from" class="form-control shadow-sm" value="{{ date_from }}">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small fw-bold text-muted text-uppercase">To</label>
+                <input type="date" name="date_to" class="form-control shadow-sm" value="{{ date_to }}">
+            </div>
+            <div class="col-md-2 d-flex gap-2 align-items-end">
+                <button type="submit" class="btn btn-primary fw-bold flex-grow-1 shadow-sm"><i class="bi bi-search me-1"></i> Filter</button>
+                <a href="{% url 'report_index' %}" class="btn btn-outline-secondary shadow-sm" title="Reset"><i class="bi bi-arrow-counterclockwise"></i></a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-dark text-white">
+                    <tr>
+                        <th class="ps-4">Date</th>
+                        <th>Subject & Semester</th>
+                        <th>Teacher</th>
+                        <th>Status</th>
+                        <th>Present / Total</th>
+                        <th class="text-end pe-4">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for sess in sessions %}
+                    <tr>
+                        <td class="ps-4">
+                            <div class="fw-bold">{{ sess.date|date:"d M Y" }}</div>
+                            <small class="text-muted">{{ sess.created_at|time:"H:i" }}</small>
+                        </td>
+                        <td>
+                            <div class="fw-bold text-dark">{{ sess.subject.name }}</div>
+                            <small class="text-muted">{{ sess.subject.department.name }} | Sem {{ sess.subject.semester }}</small>
+                        </td>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-person-circle me-2 text-primary opacity-50"></i>
+                                {{ sess.teacher.user.full_name }}
+                            </div>
+                        </td>
+                        <td>
+                            <span class="badge {% if sess.status == 'active' %}bg-success-subtle text-success{% else %}bg-secondary-subtle text-secondary{% endif %} rounded-pill px-3">
+                                {{ sess.status|upper }}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <span class="fw-bold me-2">{{ sess.present_count }} / {{ sess.total_count }}</span>
+                                <div class="progress flex-grow-1" style="height: 4px; width: 60px;">
+                                    {% widthratio sess.present_count sess.total_count 100 as p %}
+                                    <div class="progress-bar bg-primary" style="width: {{ p }}%"></div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="text-end pe-4">
+                            <div class="btn-group shadow-sm">
+                                <a href="{% url 'report_session' sess.id %}" class="btn btn-light btn-sm border" title="View Records"><i class="bi bi-eye"></i></a>
+                                <a href="{% url 'proxy_logs' %}?session_id={{ sess.id }}" class="btn btn-light btn-sm border text-danger" title="Proxy Logs"><i class="bi bi-shield-exclamation"></i></a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center py-5 text-muted">
+                            <i class="bi bi-search display-4 d-block mb-3 opacity-25"></i>
+                            No sessions found matching your current filters.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

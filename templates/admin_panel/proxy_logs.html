@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block title %}Proxy Logs - AAMS{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <h2>Proxy Attempt Logs</h2>
+    <p class="text-muted">Flagged attempts where a student tried to mark attendance for someone else or from multiple accounts on one device.</p>
+    <hr>
+</div>
+
+<div class="card">
+    <div class="card-body p-0">
+        <table class="table table-hover mb-0">
+            <thead class="table-dark">
+                <tr>
+                    <th>Time</th>
+                    <th>Session / Subject</th>
+                    <th>Attempted By</th>
+                    <th>Conflicting Account</th>
+                    <th>Reason</th>
+                    <th>Device Fingerprint</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in logs %}
+                <tr class="table-danger">
+                    <td>{{ log.attempted_at }}</td>
+                    <td>
+                        {{ log.session.subject.name }}<br>
+                        <small>{{ log.session.date }}</small>
+                    </td>
+                    <td>{{ log.attempted_by_student.user.full_name }}</td>
+                    <td>{{ log.conflicting_student.user.full_name|default:"N/A" }}</td>
+                    <td>{{ log.get_reason_display }}</td>
+                    <td><code class="small">{{ log.webgl_hash|slice:":12" }}...</code></td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="text-center py-4 text-success">No proxy attempts recorded. System is clean.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

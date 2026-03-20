@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+
+{% block title %}Session Attendance - {{ session.subject.name }}{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <!-- Header -->
+    <div class="col-12">
+        <div class="card border-0 shadow-sm rounded-4">
+            <div class="card-body p-4">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-1">
+                        <li class="breadcrumb-item"><a href="{% url 'report_index' %}" class="text-decoration-none">Reports</a></li>
+                        <li class="breadcrumb-item active">Session Detail</li>
+                    </ol>
+                </nav>
+                <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+                    <div>
+                        <h2 class="fw-bold text-dark mb-0">{{ session.subject.name }}</h2>
+                        <p class="text-muted mb-0">
+                            <i class="bi bi-calendar-event me-1"></i> {{ session.date|date:"d M Y" }} | 
+                            <i class="bi bi-person-badge me-1"></i> Teacher: {{ session.teacher.user.full_name }}
+                        </p>
+                    </div>
+                    <div class="d-flex gap-3">
+                        <div class="text-center px-3 py-2 bg-success-subtle text-success rounded-3 shadow-sm border border-success">
+                            <h4 class="mb-0 fw-bold" id="present-count">{{ session.present_count }}</h4>
+                            <small class="fw-bold">PRESENT</small>
+                        </div>
+                        <div class="text-center px-3 py-2 bg-danger-subtle text-danger rounded-3 shadow-sm border border-danger">
+                            <h4 class="mb-0 fw-bold" id="absent-count">{{ session.total_count|add:session.present_count|add:"-0" }}</h4>
+                            <small class="fw-bold">ABSENT</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Records Table -->
+    <div class="col-12">
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+            <div class="card-header bg-white border-0 py-3 px-4 d-flex justify-content-between align-items-center">
+                <h5 class="fw-bold mb-0">Student Attendance Records</h5>
+                <div class="input-group input-group-sm w-auto">
+                    <span class="input-group-text bg-light border-0"><i class="bi bi-search"></i></span>
+                    <input type="text" id="recordSearch" class="form-control bg-light border-0" placeholder="Search name or roll no...">
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0" id="recordTable">
+                        <thead class="bg-light">
+                            <tr>
+                                <th class="ps-4">Roll No</th>
+                                <th>Student Name</th>
+                                <th>Email</th>
+                                <th>Status</th>
+                                <th>Marked By</th>
+                                <th class="text-end pe-4">Manual Override (Admin)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for record in records %}
+                            <tr>
+                                <td class="ps-4 fw-bold text-muted">{{ record.student.roll_number }}</td>
+                                <td><div class="fw-bold text-dark">{{ record.student.user.full_name }}</div></td>
+                                <td><small class="text-muted">{{ record.student.user.email }}</small></td>
+                                <td>
+                                    <span id="badge-{{ record.id }}" class="badge {% if record.status == 'present' %}bg-success-subtle text-success{% else %}bg-danger-subtle text-danger{% endif %} rounded-pill px-3 py-2">
+                                        {{ record.status|upper }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <small class="text-muted">
+                                        {% if record.marked_by == 'default' %}
+                                            <i class="bi bi-dash"></i>
+                                        {% elif record.marked_by == 'qr' %}
+                                            <span class="badge bg-primary-subtle text-primary border">QR SCAN</span>
+                                        {% elif record.marked_by == 'manual' %}
+                                            <span class="badge bg-warning-subtle text-warning border text-dark">TEACHER</span>
+                                        {% elif record.marked_by == 'admin' %}
+                                            <span class="badge bg-dark-subtle text-dark border">ADMIN</span>
+                                        {% endif %}
+                                    </small>
+                                </td>
+                                <td class="text-end pe-4">
+                                    <div class="form-check form-switch d-inline-block">
+                                        <input class="form-check-input admin-toggle-check" type="checkbox" 
+                                               {% if record.status == 'present' %}checked{% endif %}
+                                               data-url="{% url 'admin_mark_attendance' record.id %}">
+                                    </div>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="6" class="text-center py-5">No records found.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 1. Admin Override Logic
+    document.querySelectorAll('.admin-toggle-check').forEach(chk => {
+        chk.addEventListener('change', function() {
+            const url = this.dataset.url;
+            const recordId = url.split('/').filter(p => p).pop();
+            const badge = document.getElementById(`badge-${recordId}`);
+            const presentCounter = document.getElementById('present-count');
+
+            fetch(url, {
+                method: "POST",
+                headers: { "X-CSRFToken": "{{ csrf_token }}" }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'present') {
+                    badge.className = 'badge bg-success-subtle text-success rounded-pill px-3 py-2';
+                    badge.innerText = 'PRESENT';
+                    presentCounter.innerText = parseInt(presentCounter.innerText) + 1;
+                } else {
+                    badge.className = 'badge bg-danger-subtle text-danger rounded-pill px-3 py-2';
+                    badge.innerText = 'ABSENT';
+                    presentCounter.innerText = parseInt(presentCounter.innerText) - 1;
+                }
+            });
+        });
+    });
+
+    // 2. Search Logic
+    document.getElementById('recordSearch').addEventListener('keyup', function() {
+        const val = this.value.toLowerCase();
+        document.querySelectorAll('#recordTable tbody tr').forEach(tr => {
+            const name = tr.cells[1].innerText.toLowerCase();
+            const roll = tr.cells[0].innerText.toLowerCase();
+            tr.style.display = (name.includes(val) || roll.includes(val)) ? '' : 'none';
+        });
+    });
+</script>
+{% endblock %}
