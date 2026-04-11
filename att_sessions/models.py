@@ -12,6 +12,12 @@ class AttendanceSession(models.Model):
     mode             = models.CharField(max_length=20, choices=MODE_CHOICES, default="none")
     current_qr_token = models.TextField(null=True, blank=True)
     qr_generated_at  = models.DateTimeField(null=True, blank=True)
+    
+    # Geofencing fields
+    latitude         = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    longitude        = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    is_geofenced     = models.BooleanField(default=False)
+
     created_at       = models.DateTimeField(auto_now_add=True)
     ended_at         = models.DateTimeField(null=True, blank=True)
 

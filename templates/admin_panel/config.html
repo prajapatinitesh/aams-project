@@ -20,14 +20,39 @@
                         </div>
                     </div>
                     
-                    <div class="alert alert-warning">
-                        <i class="bi bi-exclamation-triangle"></i>
-                        Changing these settings affects live sessions and attendance marking immediately.
+                    <hr class="my-4">
+                    <h5 class="mb-3 text-primary"><i class="bi bi-geo-alt-fill me-2"></i>Geofencing Security</h5>
+                    
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label for="id_geofence_lat" class="form-label small fw-bold">Campus Latitude</label>
+                            <input type="text" name="geofence_lat" class="form-control" id="id_geofence_lat" value="{{ geofence_lat }}" placeholder="e.g. 19.0760">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="id_geofence_lng" class="form-label small fw-bold">Campus Longitude</label>
+                            <input type="text" name="geofence_lng" class="form-control" id="id_geofence_lng" value="{{ geofence_lng }}" placeholder="e.g. 72.8777">
+                        </div>
+                        <div class="col-12">
+                            <label for="id_geofence_radius" class="form-label small fw-bold">Allowed Radius (Meters)</label>
+                            <input type="number" name="geofence_radius" class="form-control" id="id_geofence_radius" value="{{ geofence_radius }}" min="10" max="1000">
+                            <div class="form-text small">
+                                Students must be within this distance from the center point to mark attendance. Default 100m.
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-info py-2 small">
+                        <i class="bi bi-info-circle me-1"></i> Leave Latitude empty to disable geofencing globally.
                     </div>
 
-                    <div class="d-flex justify-content-between">
-                        <a href="{% url 'admin_dashboard' %}" class="btn btn-secondary">Cancel</a>
-                        <button type="submit" class="btn btn-danger">Update Settings</button>
+                    <div class="alert alert-warning py-2 small">
+                        <i class="bi bi-exclamation-triangle-fill me-1"></i>
+                        Changing these settings affects all future attendance sessions immediately.
+                    </div>
+
+                    <div class="d-flex justify-content-between pt-2">
+                        <a href="{% url 'admin_dashboard' %}" class="btn btn-outline-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-primary px-4 fw-bold">Save System Settings</button>
                     </div>
                 </form>
             </div>

@@ -10,6 +10,11 @@ class AttendanceRecord(models.Model):
     status     = models.CharField(max_length=20, default="absent")  # "present" or "absent"
     marked_by  = models.CharField(max_length=20, choices=MARKED_BY_CHOICES, default="default")
     marked_at  = models.DateTimeField(null=True, blank=True)
+    
+    # Location data
+    lat        = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    lng        = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    distance   = models.FloatField(null=True, blank=True, help_text="Distance from teacher in meters")
 
     class Meta:
         unique_together = [("session", "student")]
@@ -29,8 +34,10 @@ class WebGLFingerprint(models.Model):
 
 class ProxyLog(models.Model):
     REASON_CHOICES = [
-        ("already_marked",  "Already Marked"),
-        ("device_conflict", "Device Conflict"),
+        ("already_marked",    "Already Marked"),
+        ("device_conflict",   "Device Conflict"),
+        ("location_mismatch", "Location Mismatch"),
+        ("location_denied",   "Location Denied"),
     ]
 
     session               = models.ForeignKey(AttendanceSession, on_delete=models.CASCADE, related_name="proxy_logs")
@@ -39,5 +46,9 @@ class ProxyLog(models.Model):
     webgl_hash            = models.CharField(max_length=64)
     reason                = models.CharField(max_length=30, choices=REASON_CHOICES)
     attempted_at          = models.DateTimeField(auto_now_add=True)
+
+    # Attempted location
+    attempted_lat         = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    attempted_lng         = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
 
     def __str__(self): return f"Proxy Alert: {self.reason}"

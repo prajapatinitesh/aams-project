@@ -308,17 +308,38 @@
         html5QrCode.stop().then(() => {
             defaultMsg.style.display = 'none';
             scanMsg.style.display = 'block';
-            scanMsg.className = 'alert alert-info border-0 shadow-sm';
-            scanMsg.innerHTML = '<div class="spinner-border spinner-border-sm me-2"></div>Verifying hardware and location...';
+            scanMsg.innerHTML = '<div class="spinner-border spinner-border-sm me-2"></div>Verifying secure location...';
 
-            fetch("{% url 'mark_attendance_ajax' %}", {
-                method: "POST",
-                headers: {
-                    "X-CSRFToken": csrfToken,
-                    "Content-Type": "application/x-www-form-urlencoded",
-                },
-                body: `token=${token}&webgl_hash=${getWebGLFingerprint()}`
-            })
+            const getLocation = () => {
+                return new Promise((resolve, reject) => {
+                    if (!navigator.geolocation) {
+                        reject("Geolocation not supported");
+                    } else {
+                        navigator.geolocation.getCurrentPosition(resolve, reject, {
+                            enableHighAccuracy: true,
+                            timeout: 5000,
+                            maximumAge: 0
+                        });
+                    }
+                });
+            };
+
+            getLocation()
+                .then(position => {
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+                    
+                    scanMsg.innerHTML = '<div class="spinner-border spinner-border-sm me-2"></div>Verifying hardware and proximity...';
+
+                    return fetch("{% url 'mark_attendance_ajax' %}", {
+                        method: "POST",
+                        headers: {
+                            "X-CSRFToken": csrfToken,
+                            "Content-Type": "application/x-www-form-urlencoded",
+                        },
+                        body: `token=${token}&webgl_hash=${getWebGLFingerprint()}&latitude=${lat}&longitude=${lng}`
+                    });
+                })
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
@@ -337,7 +358,17 @@
                 })
                 .catch(err => {
                     scanMsg.className = 'alert alert-danger border-0 shadow-sm';
-                    scanMsg.innerText = "Network error. Please try again.";
+                    let errorMsg = "Network or Location error. Please ensure GPS is on.";
+                    if (typeof err === 'string') errorMsg = err;
+                    else if (err.code === 1) errorMsg = "Location permission denied. Verification failed.";
+                    else if (err.code === 3) errorMsg = "Location request timed out. Try again outdoor.";
+                    
+                    scanMsg.innerHTML = '<i class="bi bi-exclamation-triangle-fill me-2"></i>' + errorMsg;
+                    setTimeout(() => {
+                        scanMsg.style.display = 'none';
+                        defaultMsg.style.display = 'block';
+                        startScanner();
+                    }, 4000);
                 });
         }).catch(err => {
             console.error("Stop failed", err);

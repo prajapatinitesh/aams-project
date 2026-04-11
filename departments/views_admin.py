@@ -263,16 +263,42 @@ class StudentDeactivateView(View):
 @method_decorator(admin_required, name='dispatch')
 class SystemConfigView(View):
     def get(self, request):
-        interval = SystemConfig.get("qr_rotation_interval", "30")
-        return render(request, 'admin_panel/config.html', {'interval': interval})
+        context = {
+            'interval': SystemConfig.get("qr_rotation_interval", "30"),
+            'geofence_lat': SystemConfig.get("geofence_lat", "0.0"),
+            'geofence_lng': SystemConfig.get("geofence_lng", "0.0"),
+            'geofence_radius': SystemConfig.get("geofence_radius", "100"),
+        }
+        return render(request, 'admin_panel/config.html', context)
 
     def post(self, request):
+        # Update Interval
         interval = request.POST.get('interval')
         if interval and interval.isdigit():
             config, _ = SystemConfig.objects.get_or_create(key="qr_rotation_interval")
             config.value = interval
             config.save()
-            messages.success(request, "System configuration updated.")
-        else:
-            messages.error(request, "Invalid interval value.")
+            
+        # Update Geofence Lat
+        lat = request.POST.get('geofence_lat')
+        if lat:
+            config, _ = SystemConfig.objects.get_or_create(key="geofence_lat")
+            config.value = lat
+            config.save()
+
+        # Update Geofence Lng
+        lng = request.POST.get('geofence_lng')
+        if lng:
+            config, _ = SystemConfig.objects.get_or_create(key="geofence_lng")
+            config.value = lng
+            config.save()
+
+        # Update Geofence Radius
+        radius = request.POST.get('geofence_radius')
+        if radius and radius.isdigit():
+            config, _ = SystemConfig.objects.get_or_create(key="geofence_radius")
+            config.value = radius
+            config.save()
+
+        messages.success(request, "Global system configurations updated.")
         return redirect('system_config')

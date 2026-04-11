@@ -55,7 +55,8 @@ class SessionCreateView(View):
             teacher=teacher,
             date=date,
             status='active',
-            mode='none'
+            mode='none',
+            is_geofenced=True if SystemConfig.get('geofence_lat') else False
         )
 
         # Bulk create records for matching students

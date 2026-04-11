@@ -11,6 +11,7 @@ from att_sessions.models import AttendanceSession
 from att_sessions.utils import verify_token
 from departments.models import StudentProfile
 from accounts.models import SystemConfig
+from att_sessions.geoutils import haversine_distance
 from .models import AttendanceRecord, WebGLFingerprint, ProxyLog
 
 @student_required
@@ -72,6 +73,8 @@ class AttendanceSubmitView(View):
 
     def post(self, request, token):
         webgl_hash = request.POST.get('webgl_hash')
+        lat = request.POST.get('latitude')
+        lng = request.POST.get('longitude')
         student = request.user.student_profile
         
         if not webgl_hash:
@@ -93,12 +96,45 @@ class AttendanceSubmitView(View):
                     messages.error(request, "Multiple attendance attempts detected from this device. Flagged as proxy.")
                     return redirect('student_dashboard')
 
+                # Geofencing Check
+                distance = None
+                if session.is_geofenced:
+                    g_lat = SystemConfig.get('geofence_lat')
+                    g_lng = SystemConfig.get('geofence_lng')
+                    
+                    if not g_lat or not g_lng:
+                        # Fallback: if is_geofenced is True but no global coords, skip check or log error
+                        pass
+                    else:
+                        if not lat or not lng:
+                            ProxyLog.objects.create(
+                                session=session, attempted_by_student=student,
+                                webgl_hash=webgl_hash, reason='location_denied'
+                            )
+                            messages.error(request, "Location verification required. Please enable GPS.")
+                            return redirect('student_dashboard')
+                        
+                        distance = haversine_distance(g_lat, g_lng, lat, lng)
+                        radius = int(SystemConfig.get("geofence_radius", 100))
+                        
+                        if distance > radius:
+                            ProxyLog.objects.create(
+                                session=session, attempted_by_student=student,
+                                webgl_hash=webgl_hash, reason='location_mismatch',
+                                attempted_lat=lat, attempted_lng=lng
+                            )
+                            messages.error(request, f"Location mismatch! You are {int(distance)}m away from the allowed area.")
+                            return redirect('student_dashboard')
+
                 WebGLFingerprint.objects.update_or_create(session=session, student=student, defaults={'webgl_hash': webgl_hash})
                 record = get_object_or_404(AttendanceRecord, session=session, student=student)
                 if record.status != 'present':
                     record.status = 'present'
                     record.marked_by = 'qr'
                     record.marked_at = timezone.now()
+                    record.lat = lat
+                    record.lng = lng
+                    record.distance = distance
                     record.save()
                     messages.success(request, f"Attendance marked for {session.subject.name}!")
                 else:
@@ -123,6 +159,8 @@ class AjaxMarkAttendanceView(View):
     def post(self, request):
         token = request.POST.get('token')
         webgl_hash = request.POST.get('webgl_hash')
+        lat = request.POST.get('latitude')
+        lng = request.POST.get('longitude')
         student = request.user.student_profile
         
         if not token or not webgl_hash:
@@ -142,6 +180,31 @@ class AjaxMarkAttendanceView(View):
                     )
                     return JsonResponse({'success': False, 'message': 'Proxy attempt detected! device conflict.'}, status=403)
 
+                # Geofencing Check
+                distance = None
+                if session.is_geofenced:
+                    g_lat = SystemConfig.get('geofence_lat')
+                    g_lng = SystemConfig.get('geofence_lng')
+
+                    if g_lat and g_lng:
+                        if not lat or not lng:
+                            ProxyLog.objects.create(
+                                session=session, attempted_by_student=student,
+                                webgl_hash=webgl_hash, reason='location_denied'
+                            )
+                            return JsonResponse({'success': False, 'message': 'Location verification required! Access denied.'}, status=403)
+                        
+                        distance = haversine_distance(g_lat, g_lng, lat, lng)
+                        radius = int(SystemConfig.get("geofence_radius", 100))
+                        
+                        if distance > radius:
+                            ProxyLog.objects.create(
+                                session=session, attempted_by_student=student,
+                                webgl_hash=webgl_hash, reason='location_mismatch',
+                                attempted_lat=lat, attempted_lng=lng
+                            )
+                            return JsonResponse({'success': False, 'message': f'Location mismatch! You are too far ({int(distance)}m).'}, status=403)
+
                 WebGLFingerprint.objects.update_or_create(session=session, student=student, defaults={'webgl_hash': webgl_hash})
                 record = get_object_or_404(AttendanceRecord, session=session, student=student)
                 if record.status == 'present':
@@ -150,6 +213,9 @@ class AjaxMarkAttendanceView(View):
                 record.status = 'present'
                 record.marked_by = 'qr'
                 record.marked_at = timezone.now()
+                record.lat = lat
+                record.lng = lng
+                record.distance = distance
                 record.save()
                 return JsonResponse({'success': True, 'message': f'Attendance marked for {session.subject.name}!'})
 

@@ -12,8 +12,8 @@
             <div class="card-body text-center py-5" id="verification-ui">
                 <div id="loading">
                     <div class="spinner-border text-primary mb-3" role="status"></div>
-                    <h5>Verifying Device Hardware...</h5>
-                    <p class="text-muted small">Please stay on this page. Do not refresh.</p>
+                    <h5 id="loading-text">Verifying hardware and location...</h5>
+                    <p class="text-muted small">Please stay on this page. Allow location access if prompted.</p>
                 </div>
 
                 <div id="ready" style="display:none;">
@@ -24,7 +24,9 @@
                     <form method="post" id="attendance-form">
                         {% csrf_token %}
                         <input type="hidden" name="webgl_hash" id="webgl_hash">
-                        <button type="submit" class="btn btn-success btn-lg px-5">Mark Me Present</button>
+                        <input type="hidden" name="latitude" id="id_latitude">
+                        <input type="hidden" name="longitude" id="id_longitude">
+                        <button type="submit" id="submit-btn" class="btn btn-success btn-lg px-5" disabled>Mark Me Present</button>
                     </form>
                 </div>
 
@@ -77,19 +79,54 @@
     }
 
     window.addEventListener('DOMContentLoaded', async () => {
-        const hash = await getWebGLFingerprint();
         const loading = document.getElementById('loading');
+        const loadingText = document.getElementById('loading-text');
         const ready = document.getElementById('ready');
         const errorUi = document.getElementById('error-ui');
         const hashInput = document.getElementById('webgl_hash');
+        const latInput = document.getElementById('id_latitude');
+        const lngInput = document.getElementById('id_longitude');
+        const submitBtn = document.getElementById('submit-btn');
 
-        if (hash) {
-            hashInput.value = hash;
-            loading.style.display = 'none';
-            ready.style.display = 'block';
-        } else {
+        // 1. Get Hardware Fingerprint
+        loadingText.innerText = "Verifying hardware fingerprint...";
+        const hash = await getWebGLFingerprint();
+        
+        if (!hash) {
             loading.style.display = 'none';
             errorUi.style.display = 'block';
+            return;
+        }
+        hashInput.value = hash;
+
+        // 2. Get Geolocation
+        loadingText.innerText = "Verifying secure location...";
+        if ("geolocation" in navigator) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    latInput.value = position.coords.latitude;
+                    lngInput.value = position.coords.longitude;
+                    
+                    loading.style.display = 'none';
+                    ready.style.display = 'block';
+                    submitBtn.disabled = false;
+                },
+                (error) => {
+                    loading.style.display = 'none';
+                    errorUi.style.display = 'block';
+                    errorUi.querySelector('h5').innerText = "Location Verification Failed";
+                    let msg = "Attendance requires location access. ";
+                    if (error.code === 1) msg += "Permission denied.";
+                    else if (error.code === 3) msg += "Request timed out.";
+                    else msg += "Please ensure GPS is enabled.";
+                    errorUi.querySelector('p').innerText = msg;
+                },
+                { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+            );
+        } else {
+            loading.style.display = 'none';
+            ready.style.display = 'block'; // Fallback for old browsers, backend will handle validation
+            submitBtn.disabled = false;
         }
     });
 </script>
