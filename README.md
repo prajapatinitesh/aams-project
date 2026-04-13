@@ -10,18 +10,19 @@ Advanced Attendance Management System (AAMS) is a robust, security-focused web a
 
 ## 🚀 Key Features
 
-### 🛡️ Anti-Proxy Security
-- **WebGL Device Fingerprinting**: Generates a unique hardware-based hash for each student device. The system blocks attendance if multiple accounts attempt to sign in from the same physical hardware.
-- **Dynamic QR Rotation**: Signed attendance tokens rotate every 30 seconds (configurable), preventing students from sharing screenshots of QR codes with absent peers.
+### 🛡️ Anti-Proxy & Security Suite
+- **WebGL Device Fingerprinting**: Generates a unique hardware-based hash for each student device. Prevents "sign-in for a friend" by blocking multiple accounts on the same physical hardware.
+- **Geofencing (GPS Verification)**: Optional location monitoring that ensures students are within a specific radius of the classroom coordinates (Distance-based verification).
+- **Dynamic QR Rotation**: Signed tokens rotate every 30 seconds (configurable), preventing attendance-by-screenshot.
 
 ### 👤 Role-Based Portals
-- **Administrator Hub**: Centralized management for Departments, Subjects, Faculty, and Students. Access to system-wide logs and proxy detection alerts.
-- **Faculty Workspace**: Start/End sessions, toggle between QR and Manual modes, and view real-time attendance stats for assigned subjects.
-- **Student Dashboard**: Scan QR codes instantly, track attendance history, and monitor performance analysis across subjects.
+- **Administrator Hub**: Centralized management for Departments, Subjects, Faculty, and Students. Comprehensive dashboard for **Global Configuration** (Rotation timings, Geofence radius).
+- **Faculty Workspace**: Start/End sessions, toggle between **QR Mode** and **Manual Mode** (for hardware edge cases), and view real-time attendance stats.
+- **Student Dashboard**: Scan QR codes instantly, track attendance history, and monitor **Performance Analysis** across all subjects.
 
-### 📊 Intelligence & Reporting
-- **Automated Logging**: Every attendance mark recorded with timestamp and device ID.
-- **Proxy Alert System**: Detects and flags suspicious behavior for administrative review.
+### 🌍 Infrastructure
+- **Timezone Awareness**: Native support for `Asia/Kolkata` ensuring accurate chronological logging.
+- **Proxy Alert System**: Automated detection and logging of conflict hashes or geolocation mismatches.
 
 ---
 

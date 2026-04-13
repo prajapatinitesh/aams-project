@@ -30,7 +30,7 @@ class WebGLFingerprint(models.Model):
     class Meta:
         unique_together = [("session", "student")]  # one fingerprint per student per session
 
-    def __str__(self): return f"Fingerprint: {self.hash[:8]}..."
+    def __str__(self): return f"Fingerprint: {self.webgl_hash}"
 
 class ProxyLog(models.Model):
     REASON_CHOICES = [
